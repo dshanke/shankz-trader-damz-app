@@ -1,0 +1,44 @@
+mode: backtest
+initial_balance: 10000.0
+
+strategies:
+- name: DamzDynamicSIP
+  timeframe: 1m
+  total_capital: 10000.0
+  num_lots: 10
+  profit_target_percent: 1.0
+  buy_target_percent: 1.0
+  cooldown_minutes: 15
+  stuck_warning_days: 7
+  stuck_threshold_days: 14
+  auto_inject_enabled: true
+  inject_capital_per_lot: 2500
+  inject_num_lots: 4
+
+risk_management:
+  max_aggregated_loss: 2500.0
+  max_trades_per_symbol: 100
+
+data:
+  source_path: data/TQQQ_20250101_1Y_1min.csv
+  # source_path: data/TQQQ_2015_2025_11Y_1hour.csv
+
+ib:
+  host: 127.0.0.1
+  port: 4002
+  client_id: 1
+
+instruments:
+- symbol: TQQQ
+  sec_type: STK
+  exchange: SMART
+  currency: USD
+  point_value: 1.0
+  tick_size: 0.01
+
+market:
+  market_close_time: '16:00'
+  market_open_time: 09:30
+  timezone: America/New_York
+  close_before_market_close: false
+  close_positions_at_market_close: false

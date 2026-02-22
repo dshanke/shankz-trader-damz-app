@@ -1,0 +1,44 @@
+mode: live
+initial_balance: 30000.0
+
+strategies:
+- name: DamzDynamicSIP
+  timeframe: 1m
+  total_capital: 30000.0
+  num_lots: 15
+  profit_target_percent: 1.0
+  buy_target_percent: 1.0
+  cooldown_minutes: 20
+  anomalous_gap_cooldown_minutes: 5
+  stuck_warning_days: 5
+  stuck_threshold_days: 10
+  auto_inject_enabled: false
+  inject_capital_per_lot: 1000.0
+  inject_num_lots: 5
+
+risk_management:
+  max_aggregated_loss: 5000.0
+  max_trades_per_symbol: 1000
+
+ib:
+  host: 127.0.0.1
+  port: 4001
+  client_id: 1
+  account: U11412835
+  # account: U4472625
+
+instruments:
+- symbol: TQQQ
+  sec_type: STK
+  exchange: SMART
+  currency: USD
+  point_value: 1.0
+  tick_size: 0.01
+
+market:
+  close_before_market_close: false
+  market_close_time: '16:00'
+  market_open_time: 09:30
+  timezone: America/New_York
+  close_positions_at_market_close: false
+  extended_hours: true  # Enable pre/post market trading for TQQQ

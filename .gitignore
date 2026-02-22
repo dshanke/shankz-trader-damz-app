@@ -27,7 +27,7 @@ tickers/*/backtest/state/*.json
 tickers/*/backtest/backtest_state.json
 
 # Data files (large CSVs)
-tickers/*/backtest/data/*.csv
+# tickers/*/backtest/data/*.csv
 
 # Distribution / packaging
 build/
