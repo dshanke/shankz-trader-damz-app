@@ -1,0 +1,68 @@
+mode: backtest
+
+enabled_strategies:
+  - DirectionTrigger
+  - DamzDynamicSIP
+initial_balance: 10000.0
+
+strategies:
+- name: DirectionTrigger
+  timeframe: 5m
+
+  # RSI
+  rsi_period: 9
+  rsi_ema_period: 8
+  rsi_wma_period: 15
+
+  # VWAP
+  vwap_std_period: 20
+  vwap_std_buffer: 0.75
+
+  # ATR (for exits)
+  atr_period: 14
+
+  # Exits
+  breakeven_buffer_points: 0.25
+  breakeven_activation_atr: 0.7
+  trailing_stop_atr_mult: 1.1
+  rsi_exit_threshold: 55
+  vwap_exit_enabled: true
+
+  # Debug
+  debug_signals: false
+  warmup_bars: 50
+
+risk_management:
+  max_aggregated_loss: 1000.0
+  stop_loss_atr_multiplier: 1.5
+  max_trades_per_symbol: 100
+
+data:
+  source_path: data/MES_1m.csv
+
+ib:
+  host: 127.0.0.1
+  port: 4002
+  client_id: 1
+  account: ''
+
+instruments:
+- symbol: MES
+  sec_type: FUT
+  exchange: CME
+  currency: USD
+  point_value: 5.0
+  tick_size: 0.25
+  last_trade_date_or_contract_month: '202603'
+
+market:
+  close_before_market_close: true
+  minutes_before_close: 5
+  market_close_time: '16:00'
+  market_open_time: 09:30
+  timezone: America/Chicago
+  close_positions_at_market_close: true
+  minutes_after_open_to_resume: 5
+
+abort_file_path: abort
+auto_resume: true

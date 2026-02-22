@@ -1,0 +1,15 @@
+# =============================================================================
+# Strategy Whitelist Configuration
+# =============================================================================
+# Customer: damz
+# Enabled Strategies: DirectionTrigger,DamzDynamicSIP
+# =============================================================================
+
+enabled_strategies:
+  - DirectionTrigger
+  - DamzDynamicSIP
+
+# =============================================================================
+# NOTE: This customer only has access to the strategies listed above.
+# Additional strategies can be enabled by updating this file.
+# =============================================================================

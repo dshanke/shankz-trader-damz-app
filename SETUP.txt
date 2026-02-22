@@ -1,0 +1,49 @@
+Shankz Trader - Customer: damz
+==============================================
+
+ENABLED STRATEGIES:
+  DirectionTrigger,DamzDynamicSIP
+
+INSTALLATION:
+
+1. Install Python 3.12+ from https://python.org
+
+2. Install the bot package:
+   export GITHUB_TOKEN="your-github-token"
+   make install
+
+   Or for development (local source):
+   USE_LIB_SOURCE=true make install
+
+3. Configure IB Gateway:
+   - Open IB Gateway or TWS
+   - Edit → Global Configuration → API → Settings
+   - Enable "ActiveX and Socket Clients"
+   - Set port (4002=paper, 4001=live, 7497=TWS)
+
+4. Edit config to set correct port:
+   nano tickers/ES/live/config.yaml
+
+5. Run trading:
+   make launch TICKER=ES
+
+For help: make help
+
+Port Options:
+  4002 - Paper Trading (IB Gateway, default)
+  4001 - Live Trading (IB Gateway)
+  7497 - TWS Paper Trading
+  7496 - TWS Live Trading
+
+Available Tickers:
+  - ES
+  - MES
+  - TQQQ
+
+STRATEGY CONFIGURATION:
+  This app is configured to only run the following strategies:
+    DirectionTrigger, DamzDynamicSIP
+
+  To enable additional strategies, edit:
+    configs/strategies.yaml
+    tickers/<TICKER>/<live or backtest>/config.yaml

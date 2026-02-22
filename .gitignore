@@ -1,0 +1,60 @@
+# UV / Python
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+uv.lock
+
+# Runtime state files
+tickers/*/live/state.json
+tickers/*/live/state.*.json
+tickers/*/live/paper_state.json
+tickers/*/live/trading.log
+tickers/*/live/process.pid
+
+# Control files
+tickers/*/live/abort
+tickers/*/live/reload
+tickers/*/live/*.exit
+
+# Backtest outputs
+tickers/*/backtest/reports/*.txt
+tickers/*/backtest/reports/*.html
+tickers/*/backtest/reports/*.log
+tickers/*/backtest/state/*.json
+tickers/*/backtest/backtest_state.json
+
+# Data files (large CSVs)
+tickers/*/backtest/data/*.csv
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+wheels/
+.wheels/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+*.env
+
+# Testing / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+tickers/ES/live/*state.json

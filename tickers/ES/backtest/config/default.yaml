@@ -1,0 +1,294 @@
+# ==============================================================================
+# DirectionTrigger Strategy Configuration - ES Futures (5-minute)
+# ==============================================================================
+#
+# LONG-ONLY momentum strategy with VWAP alignment. Designed for ES futures
+# day trading with strict risk management and true session VWAP calculation.
+#
+# PERFORMANCE GOAL:
+#   - Win Rate: 40-50% (improved from 31.5%)
+#   - Profit Factor: >1.5 (improved from 0.94)
+#   - Max Drawdown: <15% (improved from 41%)
+#
+# KEY IMPROVEMENTS vs ORIGINAL:
+#   1. TRUE session VWAP (resets at NY open, not rolling window)
+#   2. Initial hard stop loss (was completely missing)
+#   3. VWAP exit on break BELOW (not inside band - less sensitive)
+#   4. Optional entry filters (time, volume, ATR)
+#   5. Configurable RSI threshold (can relax from 55 to 50-52)
+# ==============================================================================
+
+mode: backtest
+
+enabled_strategies:
+  - DirectionTrigger
+  - DamzDynamicSIP
+initial_balance: 50000.0
+
+strategies:
+- name: DirectionTrigger
+  timeframe: 5m
+
+  # ==============================================================================
+  # RSI SETTINGS (Momentum Indicators)
+  # ==============================================================================
+
+  # RSI Period: Standard 9-period RSI for intraday momentum
+  # - Shorter (7-9) = More responsive, more signals
+  # - Longer (12-14) = Smoother, fewer whipsaws
+  # RECOMMENDED: 9 for 5-min ES futures
+  rsi_period: 9
+
+  # RSI EMA Period: Fast moving average of RSI (momentum acceleration)
+  # - Used to detect when momentum is building
+  # - Shorter = more sensitive to momentum changes
+  rsi_ema_period: 8
+
+  # RSI WMA Period: Slow weighted average of RSI (momentum baseline)
+  # - Used as baseline for EMA comparison
+  # - Longer (15-20) provides stable momentum trend reference
+  rsi_wma_period: 15
+
+  # RSI Entry Threshold: Minimum RSI for long entry
+  # - ORIGINAL: 55 (very strict, contributed to low win rate)
+  # - RELAXED: 50-52 (allows earlier entries, improves win rate)
+  # - Trade-off: Lower value = more signals but less momentum confirmation
+  # RECOMMENDED: Start at 52, adjust based on backtest results
+  rsi_entry_threshold: 52
+
+  # ==============================================================================
+  # VWAP SETTINGS (Session Value Area)
+  # ==============================================================================
+
+  # VWAP Std Dev Period: Period for standard deviation band calculation
+  # - Used for band width around VWAP (visual reference only)
+  # - NOT used for true VWAP calculation (session-based)
+  vwap_std_period: 20
+
+  # VWAP Std Buffer: Band width multiplier (standard deviations)
+  # - 0.5 = Narrow bands (more sensitive)
+  # - 1.0 = Wide bands (less sensitive)
+  # - Used for visual reference and "strong" signal detection
+  # RECOMMENDED: 0.75 for ES futures
+  vwap_std_buffer: 0.75
+
+  # ==============================================================================
+  # ATR SETTINGS (Volatility & Position Sizing)
+  # ==============================================================================
+
+  # ATR Period: Average True Range calculation period
+  # - 14-period is standard (Wilders original)
+  # - Used for stop loss sizing and profit targets
+  # RECOMMENDED: 14 for most instruments
+  atr_period: 14
+
+  # ==============================================================================
+  # STOP LOSS SETTINGS (Risk Management - CRITICAL)
+  # ==============================================================================
+
+  # Initial Stop ATR Multiplier: Hard stop loss distance from entry
+  # - ORIGINAL: NOT IMPLEMENTED (major bug!)
+  # - NEW: 1.5 × ATR below entry
+  # - Tighter (1.0-1.2) = More stops hit, less risk per trade
+  # - Wider (1.5-2.0) = Fewer stops hit, more risk per trade
+  # BENEFIT: Protects against catastrophic losses from adverse moves
+  # RECOMMENDED: 1.5 for ES (balances noise protection with reasonable stops)
+  initial_stop_atr_mult: 1.5
+
+  # ==============================================================================
+  # BREAKEVEN STOP SETTINGS (Profit Protection)
+  # ==============================================================================
+
+  # Breakeven Buffer Points: Profit cushion after breakeven activation
+  # - Once activated, stop = Entry + this amount
+  # - 0.25 points = $12.50 on ES (50 × $0.25)
+  # - Ensures small profit even if stopped out
+  # RECOMMENDED: 0.25-0.30 for ES futures
+  breakeven_buffer_points: 0.25
+
+  # Breakeven Activation ATR: Profit required to activate breakeven
+  # - 0.7 × ATR profit triggers breakeven stop
+  # - Lower (0.5) = Earlier profit lock-in, more premature stops
+  # - Higher (0.8-1.0) = More room to breathe, but more give-back
+  # RECOMMENDED: 0.7 for balanced protection
+  breakeven_activation_atr: 0.7
+
+  # ==============================================================================
+  # TRAILING STOP SETTINGS (Let Winners Run)
+  # ==============================================================================
+
+  # Trailing Stop ATR Multiplier: Trail distance from current price
+  # - Stop = Price - (ATR × this multiplier)
+  # - Tighter (0.8-1.0) = Faster exits, less profit give-back
+  # - Wider (1.2-1.5) = Lets winners run longer, more give-back
+  # - Only active after breakeven activation
+  # RECOMMENDED: 1.1 for ES futures (balanced)
+  trailing_stop_atr_mult: 1.1
+
+  # ==============================================================================
+  # EXIT THRESHOLDS
+  # ==============================================================================
+
+  # RSI Exit Threshold: Exit when RSI drops below this level
+  # - Indicates momentum is fading back toward neutral (50)
+  # - Same as entry threshold creates symmetry
+  # - Can be set lower (e.g., 50) for earlier exits
+  # RECOMMENDED: Match rsi_entry_threshold or set slightly lower
+  rsi_exit_threshold: 50
+
+  # VWAP Exit Enabled: Exit on VWAP break (mean reversion)
+  # - ORIGINAL: Exit when price INSIDE band (too sensitive)
+  # - NEW: Exit when price BELOW VWAP (confirmed mean reversion)
+  # - BENEFIT: Fewer false exits during consolidations
+  # RECOMMENDED: true (major improvement over original)
+  vwap_exit_enabled: true
+
+  # ==============================================================================
+  # OPTIONAL ENTRY FILTERS (Trade Quality Control)
+  # ==============================================================================
+  # These filters can improve win rate by avoiding low-quality setups.
+  # Enable/disable and adjust based on backtest results.
+
+  # Time Filter: Avoid trading during "lunch chop"
+  # - ES futures often choppy 11:30 AM - 2:00 PM ET
+  # - Skipping this period improves win rate significantly
+  # RECOMMENDED: true for day trading ES
+  time_filter_enabled: true
+  lunch_start_hour: 11   # 11:00 AM ET (avoid 11:30-14:00)
+  lunch_end_hour: 14     # 2:00 PM ET
+
+  # Minimum ATR Filter: Avoid low volatility conditions
+  # - Only enter when ATR > this threshold
+  # - Prevents entries in dead markets (overnight, holidays)
+  # - Set based on instrument: ES typically 2-4 points/day
+  # RECOMMENDED: true with min_atr_threshold: 2.0
+  min_atr_enabled: true
+  min_atr_threshold: 2.0   # Minimum ATR for entry (points)
+
+  # Volume Filter: Require above-average volume
+  # - Only enter when volume > (VOL_MA × multiplier)
+  # - Confirms institutional participation in move
+  # - Multiplier 1.0 = above average, 1.2 = 20% above average
+  # RECOMMENDED: true with volume_multiplier: 1.0
+  volume_filter_enabled: true
+  volume_ma_period: 20    # MA period for average volume
+  volume_multiplier: 1.0   # 1.0 = above average, 1.2 = 20% above
+
+  # ==============================================================================
+  # OTHER SETTINGS
+  # ==============================================================================
+
+  # Warmup Bars: Minimum bars before trading (for indicator calculation)
+  # - Must be >= max(indicator periods)
+  # - 50 bars ensures all indicators are warmed up
+  warmup_bars: 50
+
+  # Debug Signals: Print signal diagnostics
+  # - Set to true for troubleshooting entry conditions
+  # - Samples ~1% of non-signal candles to avoid spam
+  debug_signals: false
+
+  # Log Rejection Reasons: Log why each bar doesn't qualify for entry
+  # - Shows short reason like "RSI 45.2 <= 52" or "ATR 0.8 < 2.0"
+  # - Helps understand why no trades are firing during backtest/live
+  # - Recommended: true for monitoring, false for production
+  log_rejection_reason: false
+
+# ==============================================================================
+# RISK MANAGEMENT
+# ==============================================================================
+
+risk_management:
+  # Maximum Aggregated Loss: Stop trading if daily loss exceeds this
+  # - $5,000 = 10% of $50,000 account
+  # - Protects against catastrophic drawdowns
+  # - Should be 5-10% of account balance
+  max_aggregated_loss: 20000.0
+
+  # Stop Loss ATR Multiplier: Global stop loss multiplier
+  # - Fallback if strategy doesn't set its own stop
+  # - 1.5 × ATR is standard for day trading futures
+  stop_loss_atr_multiplier: 1.5
+
+  # Max Trades Per Symbol: Maximum concurrent positions
+  # - 100 lots = Maximum ES exposure
+  # - Adjust based on account size and risk tolerance
+  max_trades_per_symbol: 100
+
+# ==============================================================================
+# DATA SOURCE
+# ==============================================================================
+
+data:
+  # Path to historical data file (1-minute data resampled to 5-minute)
+  source_path: data/ES_202603_1m.csv
+
+# ==============================================================================
+# INTERACTIVE BROKERS CONNECTION (Live Trading)
+# ==============================================================================
+
+ib:
+  host: 127.0.0.1      # IB Gateway/TWS localhost
+  port: 4002           # Paper trading port (7497 for TWS, 4002 for Gateway)
+  client_id: 1         # Unique client ID per connection
+
+# ==============================================================================
+# INSTRUMENT SPECIFICATIONS
+# ==============================================================================
+
+instruments:
+- symbol: ES
+  sec_type: FUT                    # Futures contract
+  exchange: CME                     # Chicago Mercantile Exchange
+  currency: USD
+  point_value: 50.0                # $50 per point (ES contract multiplier)
+  tick_size: 0.25                   # Minimum price movement
+  last_trade_date_or_contract_month: '202603'  # March 2026 expiration
+
+# ==============================================================================
+# MARKET HOURS & SESSION MANAGEMENT
+# ==============================================================================
+
+market:
+  # Close positions before market close to avoid overnight risk
+  close_before_market_close: true
+  market_close_time: '16:00'       # 4:00 PM ET (CME equity futures close)
+  market_open_time: '09:30'        # 9:30 AM ET (NY open)
+  timezone: America/Chicago         # Central time (CME timezone)
+
+  # Force close all positions at market close
+  # - Prevents holding positions overnight (gap risk)
+  # - CRITICAL for day trading strategies
+  close_positions_at_market_close: true
+
+# ==============================================================================
+# TRADING NOTES & BEST PRACTICES
+# ==============================================================================
+#
+# 1. PAPER TRADING FIRST:
+#    - Run in paper trading mode for at least 2-4 weeks
+#    - Verify session VWAP is calculating correctly
+#    - Check that initial stops are being placed
+#
+# 2. BACKTESTING TIPS:
+#    - Use at least 3 months of 5-minute ES data
+#    - Check win rate vs original (should improve from 31.5%)
+#    - Verify max drawdown is under 20%
+#
+# 3. LIVE TRADING RULES:
+#    - Start with 1-2 contracts max
+#    - Only trade 9:30 AM - 11:30 AM ET initially
+#    - Stop trading if down >$1,000 in a day
+#    - Review all trades weekly
+#
+# 4. PARAMETER TUNING:
+#    - Only change ONE parameter at a time
+#    - Re-backtest after each change
+#    - Focus on win rate AND profit factor
+#    - Don't over-optimize (curve fitting risk)
+#
+# 5. MONITORING:
+#    - Watch for stuck positions (hitting max lots)
+#    - Check that VWAP resets at NY open (14:30 UTC)
+#    - Verify stops are triggering on adverse moves
+# ==============================================================================
